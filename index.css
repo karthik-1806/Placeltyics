@@ -1,0 +1,17 @@
+@config "./tailwind.config.js";
+@import "tailwindcss";
+
+/* keep your existing layers below */
+@layer components {
+  .surface { @apply bg-white text-slate-900 border border-slate-200; }
+  .surface-dark { @apply dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800; }
+  .surface-muted { @apply bg-slate-50 text-slate-900 border border-slate-200; }
+  .surface-muted-dark { @apply dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700; }
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+
+  body { @apply bg-slate-50 text-slate-900; }
+  .dark body { @apply bg-slate-950 text-slate-100; }
+}

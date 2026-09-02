@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Placement Predictor Pro",
+  "description": "An advanced placement probability prediction system with ML-backed logic, eligibility guardrails, and Gemini-powered career coaching.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
