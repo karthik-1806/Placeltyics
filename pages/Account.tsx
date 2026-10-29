@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { StudentProfile } from "../types";
 
@@ -8,6 +8,8 @@ interface AccountProps {
 }
 
 const Account: React.FC<AccountProps> = ({ profile, onUpdate }) => {
+  const [saveFeedback, setSaveFeedback] = useState(false);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -19,6 +21,12 @@ const Account: React.FC<AccountProps> = ({ profile, onUpdate }) => {
         [name]: value,
       },
     });
+  };
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveFeedback(true);
+    setTimeout(() => setSaveFeedback(false), 2500);
   };
 
   const completeness =
@@ -33,146 +41,152 @@ const Account: React.FC<AccountProps> = ({ profile, onUpdate }) => {
       6) *
     100;
 
-  const inputClasses =
-    "w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold py-4 px-6 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none placeholder-slate-400";
-
-  const labelClasses =
-    "block text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-3 ml-2";
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Back Button explicitly to Dashboard */}
-      <Link
-        to="/"
-        className="mb-8 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
-      >
-        <span className="transition-transform group-hover:-translate-x-1">←</span>{" "}
-        Back to Dashboard
-      </Link>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Breadcrumb Navigation */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+        >
+          <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Dashboard
+        </Link>
+        <span className="badge-indigo">
+          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+          Student Identity & Profile
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* LEFT */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="mb-10">
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-              Account Profile
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 font-medium mt-2">
-              Manage your institutional identity and career objectives.
-            </p>
+      {/* Header Banner */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          Student Account Profile
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
+          Manage your institutional identity, academic credentials, and target corporate recruitment objectives.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Form: Profile Fields */}
+        <form onSubmit={handleSave} className="lg:col-span-8 bento-card space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">Profile Credentials</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Institutional records referenced during placement evaluation</p>
+            </div>
+            {saveFeedback && (
+              <span className="badge-emerald animate-in fade-in text-xs font-bold font-mono">
+                ✓ Saved to Local Storage
+              </span>
+            )}
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className={labelClasses}>Full Name</label>
-                <input
-                  name="name"
-                  value={profile.user.name}
-                  onChange={handleChange}
-                  className={inputClasses}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className={labelClasses}>Email Address</label>
-                <input
-                  disabled
-                  name="email"
-                  value={profile.user.email}
-                  className={`${inputClasses} opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-900`}
-                />
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Student Full Name</label>
+              <input
+                type="text"
+                name="name"
+                value={profile.user.name}
+                onChange={handleChange}
+                className="field-input font-medium"
+                required
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className={labelClasses}>University / Institution</label>
-                <input
-                  name="university"
-                  value={profile.user.university}
-                  onChange={handleChange}
-                  placeholder="e.g. Stanford University"
-                  className={inputClasses}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className={labelClasses}>Career Objective</label>
-                <select
-                  name="careerGoal"
-                  value={profile.user.careerGoal}
-                  onChange={handleChange}
-                  className={inputClasses}
-                >
-                  <option>Software Engineer</option>
-                  <option>Data Scientist</option>
-                  <option>Product Manager</option>
-                  <option>UX Designer</option>
-                  <option>DevOps Specialist</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-6">
-              <button className="px-10 py-5 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl hover:bg-indigo-700 transition-all">
-                Synchronize Profile
-              </button>
+            <div>
+              <label className="field-label">Registered Institutional Email</label>
+              <input
+                type="email"
+                disabled
+                name="email"
+                value={profile.user.email}
+                className="field-input opacity-60 cursor-not-allowed bg-slate-100 dark:bg-white/5 font-mono text-xs"
+              />
+              <p className="field-hint">Primary identity key linked to local records.</p>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT */}
-        <div className="lg:col-span-4 space-y-8">
-          {/* ✅ Fixed Profile Card (Light + Dark) */}
-          <div className="bg-white dark:bg-indigo-950 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/60 dark:shadow-none relative overflow-hidden text-center">
-            <div className="w-24 h-24 bg-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-black border-4 border-indigo-200/60 dark:border-white/20 text-white">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">University / College Institution</label>
+              <input
+                type="text"
+                name="university"
+                value={profile.user.university}
+                onChange={handleChange}
+                placeholder="e.g. National Institute of Technology"
+                className="field-input font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="field-label">Target Career Objective</label>
+              <select
+                name="careerGoal"
+                value={profile.user.careerGoal}
+                onChange={handleChange}
+                className="field-input font-medium"
+              >
+                <option>Software Engineer</option>
+                <option>Full-Stack Developer</option>
+                <option>Data Scientist</option>
+                <option>Machine Learning Engineer</option>
+                <option>Cloud / DevOps Specialist</option>
+                <option>Product Manager</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="btn-primary text-xs py-3 px-6 shadow-sm uppercase tracking-wider font-bold"
+            >
+              Synchronize Profile Changes
+            </button>
+          </div>
+        </form>
+
+        {/* Right Sidebar: Profile Summary Card */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bento-card text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white mx-auto flex items-center justify-center text-2xl font-bold shadow-sm border-2 border-indigo-500/40">
               {profile.user.name?.charAt(0) || "U"}
             </div>
 
-            <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-              {profile.user.name}
-            </h3>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                {profile.user.name || "Student"}
+              </h3>
+              <span className="badge-indigo text-[11px]">
+                {profile.user.careerGoal}
+              </span>
+            </div>
 
-            <p className="text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest mt-2">
-              {profile.user.careerGoal}
-            </p>
-
-            <div className="mt-10 pt-10 border-t border-slate-200 dark:border-white/10 text-left">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] font-black text-slate-600 dark:text-indigo-300 uppercase tracking-widest">
-                  Completeness
-                </span>
-                <span className="text-xs font-black text-slate-900 dark:text-white">
-                  {Math.round(completeness)}%
-                </span>
+            <div className="pt-3 border-t border-slate-200/80 dark:border-white/10 text-left space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">Profile Completeness</span>
+                <span className="font-bold text-slate-900 dark:text-white tabular-nums font-mono">{Math.round(completeness)}%</span>
               </div>
-
-              <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-1000"
+                  className="h-full bg-indigo-600 rounded-full transition-all duration-500"
                   style={{ width: `${completeness}%` }}
                 />
               </div>
             </div>
           </div>
 
-          {/* Verification Status */}
-          <div className="p-8 bg-emerald-50 dark:bg-emerald-950/20 rounded-[40px] border border-emerald-200 dark:border-emerald-900/40">
-            <h4 className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-4">
-              Verification Status
-            </h4>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black">
-                ✓
-              </div>
-              <div>
-                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                  Identity Verified
-                </p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">
-                  Via Institutional Auth
-                </p>
-              </div>
+          {/* Prototype Storage Disclosure */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-1.5 text-xs">
+            <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+              <span>💾</span> Client Persistence
             </div>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+              Your profile is preserved securely in your browser's private local storage. Export a JSON backup anytime from Settings.
+            </p>
           </div>
         </div>
       </div>

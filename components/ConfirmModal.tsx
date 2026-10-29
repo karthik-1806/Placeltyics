@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -19,32 +19,58 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onCancel]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-slate-200 dark:border-slate-800 transform transition-all">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl border border-rose-200 dark:border-transparent shrink-0">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0">
             ⚠️
           </div>
-          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
-            {title}
-          </h2>
+          <div>
+            <h2 id="modal-title" className="text-base font-bold text-slate-900 dark:text-white">
+              {title}
+            </h2>
+            <span className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold">Irreversible Action</span>
+          </div>
         </div>
-        <p className="text-slate-600 dark:text-slate-400 font-medium mb-8">
+
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {message}
         </p>
-        <div className="flex gap-4">
+
+        <div className="flex items-center gap-3 pt-2">
           <button
+            type="button"
             onClick={onCancel}
-            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            className="btn-secondary flex-1 text-xs py-2.5"
           >
             {cancelText}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
-            className="flex-1 py-4 bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-200/40 dark:shadow-none"
+            className="btn-danger flex-1 text-xs py-2.5"
           >
             {confirmText}
           </button>

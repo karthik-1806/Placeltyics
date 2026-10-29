@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 interface SettingsProps {
@@ -14,131 +14,232 @@ const Settings: React.FC<SettingsProps> = ({
   onReset,
   onExport,
 }) => {
-  return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      {/* Back Button explicitly to Dashboard */}
-      <Link
-        to="/"
-        className="mb-8 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
-      >
-        <span className="transition-transform group-hover:-translate-x-1">←</span>
-        Back to Dashboard
-      </Link>
+  const [prefRecommendations, setPrefRecommendations] = useState(true);
+  const [prefAlerts, setPrefAlerts] = useState(true);
+  const [prefCompanyInsights, setPrefCompanyInsights] = useState(true);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
 
-      <div className="mb-12">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-          Account Settings
+  const handleConfirmReset = () => {
+    setShowConfirmReset(false);
+    onReset();
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Breadcrumb Navigation */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+        >
+          <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Dashboard
+        </Link>
+        <span className="badge-indigo">
+          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+          Application Preferences & Data
+        </span>
+      </div>
+
+      {/* Header Banner */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          Settings & Privacy Controls
         </h1>
-        <p className="text-slate-700 dark:text-slate-400 font-semibold mt-2">
-          Personalize your application experience and data privacy.
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          Customize interface appearance, export your student data records, or manage local storage privacy.
         </p>
       </div>
 
       <div className="space-y-6">
-        {/* Appearance */}
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 flex items-center justify-center text-xl rounded-2xl border border-indigo-200 dark:border-transparent">
-              🌓
-            </div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-              Appearance
-            </h3>
-          </div>
-
-          <div className="w-full rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-6">
-            <div className="flex w-full items-center justify-between gap-6">
-              {/* Left text */}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                  Dark Intelligence Mode
-                </p>
-                <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest mt-1">
-                  Easier on the eyes during late-night study
-                </p>
-              </div>
-
-              {/* Right toggle */}
-              <div className="shrink-0 flex items-center">
-                <button
-                  type="button"
-                  aria-pressed={isDarkMode}
-                  onClick={toggleDarkMode}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full overflow-hidden transition ${
-                    isDarkMode ? "bg-indigo-600" : "bg-slate-600/60"
-                  }`}
-                >
-                  <span
-                    className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                      isDarkMode ? "translate-x-6" : "translate-x-0"
-                    }`}
-                  />
-                </button>
+        {/* Appearance Settings */}
+        <section className="bento-card space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">🌓</span>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">Interface Appearance</h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Theme preference persisted in browser session</p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Notifications Simulation */}
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center text-xl rounded-2xl border border-amber-200 dark:border-transparent">
-              🔔
+          <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <div>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Dark Intelligence Mode</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                Reduces eye strain during late-night practice and interview review sessions
+              </span>
             </div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-              Signals & Notifications
-            </h3>
-          </div>
 
-          <div className="space-y-2">
-            {["Smart Recommendations", "Prediction Updates", "Career Signals"].map(
-              (pref) => (
-                <div
-                  key={pref}
-                  className="flex items-center justify-between p-4 px-6 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-                >
-                  <span className="text-xs font-black text-slate-800 dark:text-slate-300 uppercase tracking-widest">
-                    {pref}
-                  </span>
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="w-5 h-5 accent-indigo-600 cursor-pointer"
-                  />
-                </div>
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-rose-200 dark:border-rose-900/20 shadow-xl shadow-rose-200/40 dark:shadow-none transition-all">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 flex items-center justify-center text-xl rounded-2xl border border-rose-200 dark:border-transparent">
-              ⚠️
-            </div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-              Data Management
-            </h3>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4">
             <button
+              type="button"
+              role="switch"
+              aria-checked={isDarkMode}
+              onClick={toggleDarkMode}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 ${
+                isDarkMode ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isDarkMode ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </section>
+
+        {/* Signals & Notifications */}
+        <section className="bento-card space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">🔔</span>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">Advisory Preferences</h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure client guidance and analytical signals</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-200/70 dark:border-white/5 cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">AI Strategic Recommendations</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Allow AI Coach to prioritize relevant coding and internship gaps</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={prefRecommendations}
+                onChange={(e) => setPrefRecommendations(e.target.checked)}
+                className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-200/70 dark:border-white/5 cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Eligibility Threshold Warnings</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Highlight active backlog and CGPA warnings in prediction breakdowns</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={prefAlerts}
+                onChange={(e) => setPrefAlerts(e.target.checked)}
+                className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-200/70 dark:border-white/5 cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Company Recruitment Tier Benchmarks</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Compare profile scores against Super Dream, Specialist, and Mass recruit standards</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={prefCompanyInsights}
+                onChange={(e) => setPrefCompanyInsights(e.target.checked)}
+                className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+              />
+            </label>
+          </div>
+        </section>
+
+        {/* Data Portability: Export */}
+        <section className="bento-card space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">📦</span>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">Data Portability & Export</h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Download your profile and prediction history as a structured JSON file</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">
+              Export all your academic scores, skill ratings, and historical placement records for backup or offline review.
+            </p>
+            <button
+              type="button"
               onClick={onExport}
-              className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"
+              className="btn-secondary text-xs py-2.5 px-5 shrink-0"
             >
-              Export My Data (JSON)
-            </button>
-
-            <button
-              onClick={onReset}
-              className="flex-1 py-4 bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-200/40 dark:shadow-none"
-            >
-              Delete My Account
+              📥 Export Profile JSON
             </button>
           </div>
-        </div>
+        </section>
+
+        {/* Danger Zone: Reset Profile */}
+        <section className="bento-card border-rose-200/80 dark:border-rose-950/60 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-rose-100 dark:border-rose-950/60">
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Account Management & Data Reset</h2>
+                <p className="text-[11px] text-rose-500/80">Permanent operations on local student data</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40">
+            <div>
+              <span className="text-xs font-bold text-rose-800 dark:text-rose-300 block">Delete Account & Evaluation History</span>
+              <span className="text-[11px] text-rose-600/80 dark:text-rose-400/80 block mt-0.5">
+                Permanently removes your profile and all saved prediction records from this browser.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowConfirmReset(true)}
+              className="btn-danger text-xs py-2.5 px-5 shrink-0"
+            >
+              Reset All Data
+            </button>
+          </div>
+        </section>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmReset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bento-card max-w-md w-full space-y-4 shadow-2xl border-rose-300 dark:border-rose-900">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl">
+                ⚠️
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Confirm Data Reset
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Are you sure you want to delete your profile data and historical evaluation records? All locally stored information will be wiped immediately.
+            </p>
+
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmReset(false)}
+                className="btn-secondary text-xs py-2 px-4"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReset}
+                className="btn-danger text-xs py-2 px-4"
+              >
+                Yes, Permanently Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

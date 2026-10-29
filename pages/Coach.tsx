@@ -2,255 +2,378 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { StudentProfile } from "../types";
 import { calculatePlacementProb } from "../services/predictionEngine";
-import { getSmartRecommendations } from "../services/geminiService";
+import { getSmartRecommendations, RecommendationResponse } from "../services/geminiService";
 
 interface CoachProps {
   profile: StudentProfile;
 }
 
 const PERSONAS = [
-  { id: "strategist", name: "Strategist", emoji: "♟️", desc: "Focuses on long-term career growth" },
-  { id: "interviewer", name: "Interviewer", emoji: "🎙️", desc: "Practical, round-by-round tactical advice" },
-  { id: "mentor", name: "Mentor", emoji: "🧘", desc: "Holistic growth and work-life balance" },
+  {
+    id: "strategist",
+    name: "Strategic Advisor",
+    role: "Placement Strategist",
+    emoji: "♟️",
+    focus: "Corporate Targeting & Market Positioning",
+    desc: "Evaluates tier eligibility, compensation bracket differentiation, and institutional campus hiring trends."
+  },
+  {
+    id: "interviewer",
+    name: "Technical Interviewer",
+    role: "Senior Engineering Assessor",
+    emoji: "🎙️",
+    focus: "Technical Rigor & Code Defense",
+    desc: "Simulates engineering test hurdles, system design scrutiny, and algorithmic problem-solving defense."
+  },
+  {
+    id: "mentor",
+    name: "Academic Mentor",
+    role: "Developmental Counselor",
+    emoji: "🧘",
+    focus: "Study Architecture & Cognitive Balance",
+    desc: "Structures sustainable study cadence, core CS foundation building, and test anxiety containment."
+  },
 ];
 
 const Coach: React.FC<CoachProps> = ({ profile }) => {
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<RecommendationResponse | null>(null);
   const [selectedPersona, setSelectedPersona] = useState(PERSONAS[0].id);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const activePersonaObj = PERSONAS.find((p) => p.id === selectedPersona) || PERSONAS[0];
 
   const generateReport = async () => {
     setLoading(true);
     setError(null);
+    setCopied(false);
 
     try {
-      // 1) Calculate placement probability from your local engine
+      // 1) Calculate baseline placement readiness
       const result = calculatePlacementProb(profile);
 
-      // 2) Get Gemini recommendations (from your backend)
-      const rec = await getSmartRecommendations(profile, result);
+      // 2) Request personalized guidance from backend with active persona
+      const rec = await getSmartRecommendations(profile, result, selectedPersona);
 
-      if (!rec) {
-        setError("Failed to get recommendations. Please try again.");
-        setReport(null);
-        return;
+      if (!rec || !rec.analysis) {
+        throw new Error("Unable to retrieve recommendations from the service. Please verify server connection and try again.");
       }
 
-      // ✅ IMPORTANT: set report from "rec" directly (not from state)
       setReport(rec);
     } catch (e: any) {
-      console.error(e);
-      setError(e?.message || "Something went wrong while generating the strategy.");
+      console.error("Coach Generation Error:", e);
+      setError(e?.message || "Failed to generate coaching strategy. Please try again.");
       setReport(null);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Back Button explicitly to Dashboard */}
-      <Link
-        to="/"
-        className="mb-8 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
-      >
-        <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Dashboard
-      </Link>
+  const handleCopyActionItems = () => {
+    if (!report || !report.tips) return;
+    const text = [
+      `Placeltyics AI Advisory Plan — ${activePersonaObj.name}`,
+      `Generated for ${profile.name || "Student"} | Branch: ${profile.branch} | Year: ${profile.year}`,
+      "",
+      `Executive Summary:`,
+      `"${report.analysis}"`,
+      "",
+      `Priority Milestones:`,
+      ...report.tips.map((t, i) => `${i + 1}. [${t.priority.toUpperCase()}] (${t.category}): ${t.tip}`),
+      "",
+      `Target Ecosystems: ${report.idealCompanies ? report.idealCompanies.join(", ") : "N/A"}`
+    ].join("\n");
 
-      <div className="flex flex-col lg:flex-row gap-12 items-start">
-        {/* Left Column: Command Center */}
-        <aside className="w-full lg:w-[360px] lg:sticky lg:top-24 space-y-8">
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40">
-                🤖
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-slate-900 dark:text-white leading-none">AI Coach</h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Neural v4.2</p>
-              </div>
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Navigation Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+        >
+          <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Dashboard
+        </Link>
+        <span className="badge-indigo">
+          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+          AI Career Intelligence Coach
+        </span>
+      </div>
+
+      {/* Page Title */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          Placement Intelligence Advisory Center
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
+          Synthesize personalized preparation roadmaps, priority milestones, and corporate targeting tactics configured to your profile.
+        </p>
+      </div>
+
+      {/* Main Grid: Control Panel Left, Feedback Feed Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Persona Configuration */}
+        <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+          <div className="bento-card space-y-5">
+            <div className="border-b border-slate-200/80 dark:border-white/10 pb-3">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                Perspective Selection
+              </span>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white mt-0.5">
+                Choose Advisory Lens
+              </h2>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 block">
-                  Choose Advisor
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  {PERSONAS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelectedPersona(p.id)}
-                      className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all ${
-                        selectedPersona === p.id
-                          ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100/50 dark:shadow-none"
-                          : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-400 hover:border-indigo-300"
-                      }`}
-                    >
-                      <span className="text-2xl">{p.emoji}</span>
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-wider leading-none">{p.name}</p>
-                        <p
-                          className={`text-[10px] mt-1 ${
-                            selectedPersona === p.id ? "text-indigo-100" : "text-slate-500"
-                          }`}
-                        >
-                          {p.desc}
-                        </p>
+            <div className="space-y-3">
+              {PERSONAS.map((p) => {
+                const isSelected = selectedPersona === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedPersona(p.id)}
+                    className={`w-full p-3.5 rounded-xl border text-left transition-all flex flex-col gap-2 ${
+                      isSelected
+                        ? "bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-500 dark:border-indigo-500 shadow-sm ring-1 ring-indigo-500/30"
+                        : "bg-slate-50/60 dark:bg-white/5 border-slate-200/80 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{p.emoji}</span>
+                        <div>
+                          <span className={`text-xs font-bold block ${isSelected ? "text-indigo-900 dark:text-indigo-200" : "text-slate-900 dark:text-white"}`}>
+                            {p.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-mono">
+                            {p.role}
+                          </span>
+                        </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      {isSelected ? (
+                        <span className="badge-indigo text-[10px] py-0.5 px-2">Active</span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 font-mono">Select</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                      {p.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
 
-              {!report && !loading && (
-                <button
-                  onClick={generateReport}
-                  className="w-full py-5 bg-slate-900 dark:bg-indigo-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-2xl hover:bg-black dark:hover:bg-indigo-700 transition-all hover:-translate-y-1"
-                >
-                  Generate Strategy
-                </button>
-              )}
-
-              {report && (
-                <button
-                  onClick={() => {
-                    setReport(null);
-                    setError(null);
-                  }}
-                  className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border border-slate-200 dark:border-slate-700 hover:text-rose-600 transition-all"
-                >
-                  Clear Analysis
-                </button>
-              )}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={generateReport}
+                disabled={loading}
+                className="btn-primary w-full py-3.5 text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    Synthesizing Strategy...
+                  </>
+                ) : report ? (
+                  `Regenerate Plan (${activePersonaObj.name}) →`
+                ) : (
+                  `Generate Strategy (${activePersonaObj.name}) →`
+                )}
+              </button>
             </div>
           </div>
 
-          <div className="p-8 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-[40px] border border-indigo-200/50 dark:border-indigo-900/30">
-            <h4 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-4">
-              Current Profile
-            </h4>
-            <div className="space-y-3">
-              {[
-                { label: "Academic Score", val: `${profile.cgpa}/10` },
-                { label: "Tech Proficiency", val: `${Math.round((profile.codingDSA + profile.codingDev) / 2)}%` },
-                { label: "Portfolio Units", val: profile.projects + profile.internships },
-              ].map((stat) => (
-                <div key={stat.label} className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{stat.label}</span>
-                  <span className="text-xs font-black text-slate-900 dark:text-white uppercase">{stat.val}</span>
-                </div>
-              ))}
+          {/* Profile Metrics Snapshot */}
+          <div className="bento-card space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Evaluation Snapshot
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Live Inputs</span>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
+                <span className="text-slate-600 dark:text-slate-400">Academic Standing</span>
+                <span className="font-bold text-slate-900 dark:text-white tabular-nums font-mono">{profile.cgpa} / 10 CGPA</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
+                <span className="text-slate-600 dark:text-slate-400">DSA & Development</span>
+                <span className="font-bold text-slate-900 dark:text-white tabular-nums font-mono">{profile.codingDSA}% / {profile.codingDev}%</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
+                <span className="text-slate-600 dark:text-slate-400">Backlogs Status</span>
+                <span className={`font-bold tabular-nums font-mono ${profile.backlogs > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                  {profile.backlogs === 0 ? "0 Active (Clear)" : `${profile.backlogs} Active Backlog${profile.backlogs > 1 ? 's' : ''}`}
+                </span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600 dark:text-slate-400">Practical Portfolio</span>
+                <span className="font-bold text-slate-900 dark:text-white tabular-nums font-mono">{profile.projects} Projects • {profile.internships} Internships</span>
+              </div>
             </div>
           </div>
         </aside>
 
-        {/* Right Column: Insights Feed */}
-        <main className="flex-1 w-full min-h-[600px]">
+        {/* Right Column: Guidance Stream */}
+        <main className="lg:col-span-8 min-h-[500px]">
           {loading ? (
-            <div className="bg-white dark:bg-slate-900 p-20 rounded-[48px] border border-slate-200 dark:border-slate-800 shadow-xl flex flex-col items-center justify-center text-center h-full">
-              <div className="relative w-24 h-24 mb-10">
-                <div className="absolute inset-0 border-8 border-slate-100 dark:border-slate-800 rounded-full"></div>
-                <div className="absolute inset-0 border-8 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center text-3xl">🧩</div>
+            <div className="bento-card flex flex-col items-center justify-center text-center p-14 min-h-[460px] space-y-5">
+              <div className="w-14 h-14 rounded-full border-4 border-indigo-200 dark:border-indigo-950 border-t-indigo-600 animate-spin"></div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Consulting {activePersonaObj.name}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+                  Analyzing current recruitment criteria, factorizing skill vectors, and tailoring strategic priorities...
+                </p>
               </div>
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-4">Drafting Masterplan</h3>
-              <p className="text-slate-600 dark:text-slate-400 font-medium max-w-sm mx-auto text-lg leading-relaxed">
-                Gemini is analyzing market benchmarks and your specific growth vectors...
-              </p>
             </div>
           ) : error ? (
-            <div className="bg-white dark:bg-slate-900 p-16 rounded-[48px] border border-rose-200 dark:border-rose-900 shadow-xl text-center">
-              <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mb-3">Something went wrong</h3>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">{error}</p>
+            <div className="bento-card border-rose-200 dark:border-rose-900/60 p-10 text-center space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl mx-auto">
+                ⚠️
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Advisory Service Unavailable</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">{error}</p>
               <button
+                type="button"
                 onClick={generateReport}
-                className="mt-8 px-6 py-3 bg-rose-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-rose-700 transition-all"
+                className="btn-primary text-xs py-2 px-5"
               >
-                Try Again
+                Retry Generation
               </button>
             </div>
           ) : report ? (
-            <div className="space-y-12 animate-in fade-in slide-in-from-right-8 duration-700">
-              {/* Analysis Hero */}
-              <section className="bg-slate-900 dark:bg-indigo-950 p-12 rounded-[48px] text-white relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -mr-40 -mt-40"></div>
-                <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-8">
-                  Foundational Analysis
-                </h3>
-                <p className="text-3xl font-bold leading-tight tracking-tight italic">"{report.analysis}"</p>
-              </section>
-
-              {/* Roadmap Grid */}
-              <section>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center text-xl">
-                    🚀
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Executive Assessment Card */}
+              <div className="bento-card-hero p-6 sm:p-7 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 dark:border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="badge-indigo text-[11px]">
+                      {activePersonaObj.emoji} {activePersonaObj.name}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                      Institutional Strategy
+                    </span>
                   </div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Growth Roadmap</h3>
+                  <button
+                    type="button"
+                    onClick={handleCopyActionItems}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    <span>📋</span>
+                    {copied ? "Copied to Clipboard!" : "Copy Action Items"}
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Executive Strategic Assessment
+                  </span>
+                  <p className="text-sm sm:text-base font-medium leading-relaxed text-slate-800 dark:text-slate-200 italic">
+                    "{report.analysis}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Actionable Milestones */}
+              <div className="bento-card space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                      Actionable Roadmap Priorities
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Target interventions calibrated for recruitment clearance</p>
+                  </div>
+                  <span className="badge-neutral text-[10px] font-mono">
+                    {report.tips?.length || 0} Strategic Milestones
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {report.tips?.map((tip: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] shadow-sm hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-900 transition-all group"
-                    >
-                      <div className="flex justify-between items-center mb-6">
-                        <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9px] font-black rounded-lg uppercase tracking-widest">
-                          {tip.category}
-                        </span>
-                        <div
-                          className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${
-                            tip.priority === "High" ? "text-rose-600" : "text-amber-600"
-                          }`}
-                        >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {report.tips?.map((tip, idx) => {
+                    const isHigh = tip.priority === "High" || tip.priority?.toLowerCase() === "high";
+                    return (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-xl bg-slate-50/80 dark:bg-white/5 border border-slate-200/70 dark:border-white/5 space-y-2.5 flex flex-col justify-between"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            {tip.category}
+                          </span>
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              tip.priority === "High" ? "bg-rose-600 animate-pulse" : "bg-amber-600"
-                            }`}
-                          ></span>
-                          {tip.priority}
+                            className={isHigh ? "badge-rose text-[10px] py-0.5" : "badge-amber text-[10px] py-0.5"}
+                          >
+                            {tip.priority} Priority
+                          </span>
                         </div>
+                        <p className="text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+                          {tip.tip}
+                        </p>
                       </div>
-                      <p className="text-slate-800 dark:text-slate-300 text-lg leading-relaxed font-bold group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {tip.tip}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              </section>
+              </div>
 
-              {/* Companies */}
-              <section className="bg-white dark:bg-slate-900 p-12 rounded-[48px] border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-4 mb-10">
-                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center text-xl">
-                    🏢
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Target Ecosystems</h3>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  {report.idealCompanies?.map((comp: string, idx: number) => (
-                    <div
-                      key={idx}
-                      className="px-8 py-5 bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-300 rounded-[20px] text-xs font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:border-indigo-500 transition-all cursor-default"
-                    >
-                      {comp}
+              {/* Recommended Target Ecosystems */}
+              {report.idealCompanies && report.idealCompanies.length > 0 && (
+                <div className="bento-card space-y-3.5">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-2.5">
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                        Target Corporate Ecosystems
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Employers aligned with your current readiness tier</p>
                     </div>
-                  ))}
+                    <span className="text-[10px] font-mono text-slate-400">Campus Drives</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {report.idealCompanies.map((comp, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-200/80 dark:border-white/10 flex items-center gap-1.5"
+                      >
+                        <span>🏢</span> {comp}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </section>
+              )}
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 p-24 rounded-[48px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center h-full min-h-[600px] group">
-              <div className="w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-[40px] flex items-center justify-center text-6xl mb-10 group-hover:scale-110 transition-all">
-                ✨
+            <div className="bento-card flex flex-col items-center justify-center text-center p-14 min-h-[460px] space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl">
+                🤖
               </div>
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Strategy Terminal</h2>
-              <p className="text-slate-600 dark:text-slate-400 max-w-sm font-medium leading-relaxed">
-                Select a coaching persona and trigger the neural analysis to build your professional placement roadmap.
-              </p>
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Personalized Placement Strategy Awaiting
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+                  Select your preferred advisory perspective on the left and click Generate Strategy to create customized guidance for your recruitment goals.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={generateReport}
+                className="btn-primary text-xs py-3 px-6 mt-2"
+              >
+                Generate Strategy with {activePersonaObj.name} →
+              </button>
             </div>
           )}
         </main>

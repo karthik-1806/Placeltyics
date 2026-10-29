@@ -1,4 +1,3 @@
-
 export interface UserInfo {
   name: string;
   email: string;
@@ -27,7 +26,17 @@ export interface StudentProfile {
   communicationScore: number;
   codingDSA: number; // Factorized coding: Data Structures
   codingDev: number; // Factorized coding: Development/Frameworks
-  predictionHistory: PredictionRecord[]; 
+  predictionHistory: PredictionRecord[];
+}
+
+export interface CompanyEligibility {
+  name: string;
+  category: 'Product / Super Dream' | 'Tier-1 Specialist' | 'Mass / IT Services';
+  minCgpa: number;
+  maxBacklogs: number;
+  minTechScore: number;
+  status: 'ELIGIBLE' | 'NEAR_THRESHOLD' | 'INELIGIBLE';
+  reason: string;
 }
 
 export interface PredictionResult {
@@ -41,6 +50,8 @@ export interface PredictionResult {
   };
   eligibilityStatus: 'EL_HIGH' | 'EL_MEDIUM' | 'EL_LOW' | 'INELIGIBLE';
   message: string;
+  readinessLabel: string;
+  companyEligibility: CompanyEligibility[];
 }
 
 export interface Recommendation {

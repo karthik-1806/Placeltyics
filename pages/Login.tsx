@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface LoginProps {
@@ -16,97 +15,125 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSignup }) => {
     e.preventDefault();
     setError('');
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return setError('Please enter a valid email address');
+    }
+
     if (isSignup) {
-      if (!name || !email) return setError('All fields required');
-      const success = onSignup(name, email);
-      if (!success) setError('Account with this email already exists');
+      if (!cleanName) return setError('Please enter your full legal name');
+      const success = onSignup(cleanName, cleanEmail);
+      if (!success) setError('An account with this email already exists. Please log in.');
     } else {
-      if (!email) return setError('Email required');
-      const success = onLogin(email);
-      if (!success) setError('Account not found. Please create a new account.');
+      const success = onLogin(cleanEmail);
+      if (!success) {
+        setError('No account found for this email. Switch to "Create Account" below.');
+      }
+    }
+  };
+
+  const handleDemoLogin = () => {
+    setError('');
+    // Use pre-configured demo account or create it
+    const demoEmail = 'alex.student@university.edu';
+    const demoName = 'Alex Mercer';
+    const loggedIn = onLogin(demoEmail);
+    if (!loggedIn) {
+      onSignup(demoName, demoEmail);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-white dark:bg-slate-950 relative overflow-hidden">
-      {/* Animated Neural Background */}
-      <div className="absolute inset-0 opacity-10 dark:opacity-20">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600 rounded-full blur-[150px] animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-violet-600 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
-      <div className="w-full max-w-xl glass rounded-[48px] p-12 border border-slate-200 dark:border-white/10 shadow-2xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <div className="flex flex-col items-center text-center mb-12">
-          <div className="w-20 h-20 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-3xl flex items-center justify-center text-white text-4xl font-black mb-8 shadow-2xl rotate-3">P</div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
-            {isSignup ? 'Create Account' : 'Welcome Back'}
+    <div className="min-h-[85vh] flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md bento-card p-8 sm:p-10 space-y-6 shadow-lg border border-slate-200/80 dark:border-slate-800">
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl mx-auto shadow-md">
+            P
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight pt-2">
+            {isSignup ? 'Create Student Profile' : 'Student Access Portal'}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">
-            {isSignup 
-              ? 'Initialize your professional profile to begin analysis.' 
-              : 'Sign in to access your placement metrics.'}
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {isSignup
+              ? 'Initialize your campus placement analytics profile.'
+              : 'Sign in to access your placement readiness dashboard.'}
           </p>
         </div>
 
+        {/* Demo Fast Access Pill */}
+        <div className="p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/40 flex items-center justify-between gap-3 text-xs">
+          <div>
+            <span className="font-bold text-indigo-950 dark:text-indigo-200 block">Evaluate Demo Student</span>
+            <span className="text-[11px] text-indigo-700 dark:text-indigo-400">Pre-populated CSE 4th Year metrics</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shrink-0 shadow-sm transition-all"
+          >
+            Launch Demo →
+          </button>
+        </div>
+
         {error && (
-          <div className="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 text-xs font-bold text-center animate-shake">
+          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold text-center animate-shake">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {isSignup && (
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Full Legal Name</label>
-              <input 
+            <div>
+              <label className="field-label">Student Full Name</label>
+              <input
                 required
-                type="text" 
+                type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl px-8 py-5 text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                placeholder="e.g. Priya Sharma"
+                className="field-input"
               />
             </div>
           )}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Institutional Email</label>
-            <input 
+
+          <div>
+            <label className="field-label">Institutional / Student Email</label>
+            <input
               required
-              type="email" 
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="john.doe@university.edu"
-              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl px-8 py-5 text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+              placeholder="e.g. student@college.edu"
+              className="field-input"
             />
           </div>
 
-          <button 
-            type="submit"
-            className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-[0.2em] rounded-3xl shadow-2xl transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 mt-8"
-          >
-            {isSignup ? 'Register Profile' : 'Sign In Now'}
-            <span>→</span>
-          </button>
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="btn-primary w-full py-3.5 text-xs font-bold tracking-wide uppercase shadow-sm"
+            >
+              {isSignup ? 'Create Profile & Enter Dashboard' : 'Sign In with Email →'}
+            </button>
+          </div>
         </form>
 
-        <div className="mt-8 text-center">
-          <button 
-            onClick={() => { setIsSignup(!isSignup); setError(''); }}
-            className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+        <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignup(!isSignup);
+              setError('');
+            }}
+            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
           >
-            {isSignup ? 'Already have an account? Login here' : 'Need a new profile? Create account here'}
+            {isSignup
+              ? 'Already registered? Return to Sign In'
+              : "Don't have a profile? Create Account here"}
           </button>
-        </div>
-
-        <div className="mt-12 flex justify-center gap-8 border-t border-slate-100 dark:border-white/5 pt-12">
-          <div className="text-center">
-            <p className="text-2xl font-black text-slate-900 dark:text-white">99.8%</p>
-            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Accuracy</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-black text-slate-900 dark:text-white">Secure</p>
-            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Storage</p>
-          </div>
         </div>
       </div>
     </div>
