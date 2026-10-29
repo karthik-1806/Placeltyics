@@ -277,8 +277,10 @@ Provide realistic, actionable recommendations. Do not promise guaranteed hiring.
 Provide response matching the required schema.
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    const modelName = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+
+    const generatePromise = ai.models.generateContent({
+      model: modelName,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -304,6 +306,12 @@ Provide response matching the required schema.
         },
       },
     });
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Gemini API request timeout (9s)")), 9000)
+    );
+
+    const response = await Promise.race([generatePromise, timeoutPromise]);
 
     const parsed = JSON.parse(response.text || "{}");
     if (!parsed.analysis || !Array.isArray(parsed.tips)) {
