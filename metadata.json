@@ -1,6 +1,6 @@
 {
   "name": "Copy of Placement Predictor Pro",
-  "description": "An advanced placement probability prediction system with ML-backed logic, eligibility guardrails, and Gemini-powered career coaching.",
+  "description": "An advanced placement readiness evaluation system with heuristic scoring logic, eligibility guardrails, and Gemini-powered career coaching.",
   "requestFramePermissions": [
     "camera",
     "microphone"

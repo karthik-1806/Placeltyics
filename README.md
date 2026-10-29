@@ -1,7 +1,7 @@
 Placeltyics – Placement Prediction & Career Analytics System
 Overview
 
-Placeltyics is a full-stack web application designed to analyze student academic and technical profiles and estimate placement probability.
+Placeltyics is a full-stack web application designed to analyze student academic and technical profiles and evaluate placement readiness.
 
 The system combines structured scoring logic with AI-generated feedback to provide actionable recommendations for improving employability.
 
@@ -17,7 +17,7 @@ Key areas requiring improvement
 
 Comparative profile strength
 
-Placeltyics addresses this gap by converting academic and skill-based inputs into measurable probability outputs and structured recommendations.
+Placeltyics addresses this gap by converting academic and skill-based inputs into a measurable readiness score and structured recommendations.
 
 System Architecture
 
@@ -33,7 +33,7 @@ Tailwind CSS
 
 Component-based UI design
 
-SVG-based probability visualization
+SVG-based readiness score visualization
 
 Backend
 
@@ -63,9 +63,9 @@ Historical prediction tracking
 
 Core Features
 
-Profile-based placement probability prediction
+Profile-based placement readiness assessment
 
-Dynamic circular probability visualization
+Dynamic circular readiness score visualization
 
 AI-generated structured feedback
 
@@ -79,7 +79,7 @@ Historical prediction tracking
 
 Technical Highlights
 
-Custom probability calculation engine
+Custom placement readiness calculation engine
 
 SVG-based animated progress ring
 
