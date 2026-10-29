@@ -1,4 +1,3 @@
-
 import React, { useMemo, useEffect } from 'react';
 import { StudentProfile } from '../types';
 import { BRANCH_OPTIONS, COURSE_CONFIG } from '../constants';
@@ -7,18 +6,20 @@ interface PredictFormProps {
   data: StudentProfile;
   onChange: (data: StudentProfile) => void;
   onSubmit: () => void;
+  isLoading?: boolean;
 }
 
-const PredictForm: React.FC<PredictFormProps> = ({ data, onChange, onSubmit }) => {
+const PredictForm: React.FC<PredictFormProps> = ({ data, onChange, onSubmit, isLoading = false }) => {
   const dynamicYearOptions = useMemo(() => {
     const config = COURSE_CONFIG[data.branch] || { duration: 4 };
-    return Array.from({ length: config.duration }, (_, i) => `${i + 1}${getOrdinal(i + 1)} Year`);
+    return Array.from({ length: config.duration }, (_, i) => {
+      const n = i + 1;
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      const ord = s[(v - 20) % 10] || s[v] || s[0];
+      return `${n}${ord} Year`;
+    });
   }, [data.branch]);
-
-  function getOrdinal(n: number) {
-    const s = ["th", "st", "nd", "rd"], v = n % 100;
-    return s[(v - 20) % 10] || s[v] || s[0];
-  }
 
   useEffect(() => {
     if (!dynamicYearOptions.includes(data.year)) {
@@ -31,11 +32,9 @@ const PredictForm: React.FC<PredictFormProps> = ({ data, onChange, onSubmit }) =
     let finalValue: string | number = value;
 
     if (type === 'number' || type === 'range') {
-      const inputElement = e.target as HTMLInputElement;
       const num = parseFloat(value);
-      const min = parseFloat(inputElement.min || "0");
-      const max = parseFloat(inputElement.max || "100");
-      
+      const min = parseFloat(e.target.getAttribute('min') || "0");
+      const max = parseFloat(e.target.getAttribute('max') || "100");
       finalValue = isNaN(num) ? min : Math.min(Math.max(num, min), max);
     }
 
@@ -45,174 +44,314 @@ const PredictForm: React.FC<PredictFormProps> = ({ data, onChange, onSubmit }) =
     });
   };
 
-  const inputClasses = "w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold focus:ring-4 focus:ring-indigo-500/10 dark:focus:ring-indigo-500/20 focus:border-indigo-500 transition-all py-3 px-4 shadow-sm placeholder-slate-400 dark:placeholder-slate-500";
-  const labelClasses = "block text-[10px] font-black text-slate-700 dark:text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1";
-  const sectionClasses = "bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/60 dark:shadow-none space-y-6 mb-8";
-  const subLabelClasses = "text-[11px] font-extrabold text-slate-800 dark:text-slate-300 mb-1 block";
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoading) {
+      onSubmit();
+    }
+  };
 
   return (
-    <div className="space-y-0">
-      {/* 1. Academic DNA */}
-      <div className={sectionClasses}>
-        <div className="flex items-center gap-4 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-2xl shadow-inner border border-indigo-200 dark:border-transparent">🎓</div>
-          <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">Academic DNA</h3>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-500 mt-1 uppercase tracking-widest">Base Credentials</p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 1. Academic Credentials */}
+      <section className="bento-card space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50">
+              01
+            </span>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Academic Foundation
+            </h2>
           </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Core Eligibility</span>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className={labelClasses}>Course</label>
-            <select name="branch" value={data.branch} onChange={handleChange} className={inputClasses}>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="field-label">Branch / Program</label>
+            <select name="branch" value={data.branch} onChange={handleChange} className="field-input">
               {BRANCH_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
-          <div className="space-y-1">
-            <label className={labelClasses}>Year</label>
-            <select name="year" value={data.year} onChange={handleChange} className={inputClasses}>
+
+          <div>
+            <label className="field-label">Year of Study</label>
+            <select name="year" value={data.year} onChange={handleChange} className="field-input">
               {dynamicYearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <div className="space-y-1">
-            <label className={labelClasses}>Current CGPA</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Cumulative CGPA</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Scale: 0.00 – 10.00</span>
+            </div>
             <div className="relative">
-              <input type="number" name="cgpa" step="0.01" min="0" max="10" value={data.cgpa} onChange={handleChange} className={inputClasses} />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-500 dark:text-slate-600">/ 10</span>
+              <input
+                type="number"
+                name="cgpa"
+                step="0.01"
+                min="0"
+                max="10"
+                value={data.cgpa}
+                onChange={handleChange}
+                className="field-input pr-12 font-semibold"
+                required
+              />
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">/ 10</span>
             </div>
           </div>
-          <div className="space-y-1">
-            <label className={labelClasses}>Active Backlogs</label>
-            <input type="number" name="backlogs" min="0" max="10" value={data.backlogs} onChange={handleChange} 
-              className={`${inputClasses} ${data.backlogs > 0 ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-400 font-bold' : ''}`} 
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Active Backlogs</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Range: 0 – 20</span>
+            </div>
+            <input
+              type="number"
+              name="backlogs"
+              min="0"
+              max="20"
+              value={data.backlogs}
+              onChange={handleChange}
+              className={`field-input font-semibold ${
+                data.backlogs > 0
+                  ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+                  : ''
+              }`}
+              required
+            />
+            {data.backlogs > 0 && (
+              <p className="field-hint text-rose-600 dark:text-rose-400 flex items-center gap-1 mt-1.5">
+                <span>⚠️</span> Active backlogs trigger strict disqualification filters across major campus recruiters.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Technical Competencies */}
+      <section className="bento-card space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
+              02
+            </span>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Technical Competencies
+            </h2>
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Evaluation Vectors</span>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Data Structures & Algorithms</span>
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{data.codingDSA}%</span>
+            </div>
+            <input
+              type="range"
+              name="codingDSA"
+              min="0"
+              max="100"
+              value={data.codingDSA}
+              onChange={handleChange}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+              <span>0% (Foundational)</span>
+              <span>100% (Advanced)</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Software Development & Frameworks</span>
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{data.codingDev}%</span>
+            </div>
+            <input
+              type="range"
+              name="codingDev"
+              min="0"
+              max="100"
+              value={data.codingDev}
+              onChange={handleChange}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+              <span>0% (Foundational)</span>
+              <span>100% (Advanced)</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Quantitative & Logical Aptitude</span>
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{data.aptitudeScore}%</span>
+            </div>
+            <input
+              type="range"
+              name="aptitudeScore"
+              min="0"
+              max="100"
+              value={data.aptitudeScore}
+              onChange={handleChange}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+              <span>0% (Foundational)</span>
+              <span>100% (Advanced)</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Communication & Interview Presentation</span>
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{data.communicationScore} / 10</span>
+            </div>
+            <input
+              type="range"
+              name="communicationScore"
+              min="0"
+              max="10"
+              value={data.communicationScore}
+              onChange={handleChange}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+              <span>0 / 10 (Introductory)</span>
+              <span>10 / 10 (Proficient)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Practical Experience */}
+      <section className="bento-card space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/50">
+              03
+            </span>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Engineering Portfolio
+            </h2>
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Applied Experience</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Internship Count</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Range: 0 – 10</span>
+            </div>
+            <input
+              type="number"
+              name="internships"
+              min="0"
+              max="10"
+              value={data.internships}
+              onChange={handleChange}
+              className="field-input font-semibold"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Internship Relevance</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Scale: 0 – 10</span>
+            </div>
+            <input
+              type="number"
+              name="internshipRelevance"
+              min="0"
+              max="10"
+              value={data.internshipRelevance}
+              onChange={handleChange}
+              className="field-input font-semibold"
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Completed Projects</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Range: 0 – 20</span>
+            </div>
+            <input
+              type="number"
+              name="projects"
+              min="0"
+              max="20"
+              value={data.projects}
+              onChange={handleChange}
+              className="field-input font-semibold"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Complexity Rating</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Scale: 0 – 10</span>
+            </div>
+            <input
+              type="number"
+              name="projectComplexity"
+              min="0"
+              max="10"
+              value={data.projectComplexity}
+              onChange={handleChange}
+              className="field-input font-semibold"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="field-label mb-0">Documentation</label>
+              <span className="text-[11px] font-mono text-slate-600 dark:text-slate-400">Scale: 0 – 10</span>
+            </div>
+            <input
+              type="number"
+              name="projectDocumentation"
+              min="0"
+              max="10"
+              value={data.projectDocumentation}
+              onChange={handleChange}
+              className="field-input font-semibold"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Predict Trigger Button */}
+      <div className="pt-2">
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="btn-primary w-full py-3.5 text-sm font-bold uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all"
+        >
+          {isLoading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              Evaluating Profile Metrics...
+            </>
+          ) : (
+            <>
+              Run Placement Readiness Assessment →
+            </>
+          )}
+        </button>
       </div>
-
-      {/* 2. Core Tech */}
-      <div className={sectionClasses}>
-        <div className="flex items-center gap-4 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-2xl shadow-inner border border-emerald-200 dark:border-transparent">💻</div>
-          <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">Core Tech</h3>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-500 mt-1 uppercase tracking-widest">Skill Assessment</p>
-          </div>
-        </div>
-
-        <div className="space-y-5">
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className={subLabelClasses}>Coding: DSA</label>
-              <span className="text-xs font-black text-indigo-700 dark:text-indigo-400">{data.codingDSA}%</span>
-            </div>
-            <input type="range" name="codingDSA" min="0" max="100" value={data.codingDSA} onChange={handleChange} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className={subLabelClasses}>Coding: Development</label>
-              <span className="text-xs font-black text-violet-700 dark:text-violet-400">{data.codingDev}%</span>
-            </div>
-            <input type="range" name="codingDev" min="0" max="100" value={data.codingDev} onChange={handleChange} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-600" />
-          </div>
-
-          <div className="space-y-4 pt-2">
-            <div>
-              <div className="flex justify-between mb-1">
-                <label className={labelClasses}>Aptitude Score</label>
-                <span className="text-xs font-black text-indigo-700 dark:text-indigo-400">{data.aptitudeScore}/100</span>
-              </div>
-              <input type="range" name="aptitudeScore" min="0" max="100" value={data.aptitudeScore} onChange={handleChange} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-            </div>
-            
-            <div>
-              <div className="flex justify-between mb-1">
-                <label className={labelClasses}>Soft Skills</label>
-                <span className="text-xs font-black text-slate-900 dark:text-white">{data.communicationScore}/10</span>
-              </div>
-              <input type="range" name="communicationScore" min="0" max="10" value={data.communicationScore} onChange={handleChange} className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Practical Experience */}
-      <div className={sectionClasses}>
-        <div className="flex items-center gap-4 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-2xl shadow-inner border border-amber-200 dark:border-transparent">📋</div>
-          <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">Practical Experience</h3>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-500 mt-1 uppercase tracking-widest">Portfolio Metrics</p>
-          </div>
-        </div>
-
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-              <span className="w-1 h-1 bg-emerald-600 rounded-full"></span>
-              Project Metrics
-            </h4>
-            <div className="grid grid-cols-1 gap-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div>
-                <label className={subLabelClasses}>Count</label>
-                <input type="number" name="projects" min="0" max="20" value={data.projects} onChange={handleChange} className={inputClasses} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <label className={subLabelClasses}>Complexity</label>
-                    <span className="text-[10px] font-black text-emerald-700">{data.projectComplexity}/10</span>
-                  </div>
-                  <input type="range" name="projectComplexity" min="0" max="10" value={data.projectComplexity} onChange={handleChange} className="w-full h-1.5 bg-white dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-600" />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <label className={subLabelClasses}>Documentation</label>
-                    <span className="text-[10px] font-black text-emerald-700">{data.projectDocumentation}/10</span>
-                  </div>
-                  <input type="range" name="projectDocumentation" min="0" max="10" value={data.projectDocumentation} onChange={handleChange} className="w-full h-1.5 bg-white dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest flex items-center gap-2">
-              <span className="w-1 h-1 bg-amber-600 rounded-full"></span>
-              Internship Metrics
-            </h4>
-            <div className="grid grid-cols-1 gap-4 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <div>
-                <label className={subLabelClasses}>Count</label>
-                <input type="number" name="internships" min="0" max="10" value={data.internships} onChange={handleChange} className={inputClasses} />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className={subLabelClasses}>Relevance</label>
-                  <span className="text-[10px] font-black text-amber-700">{data.internshipRelevance}/10</span>
-                </div>
-                <input type="range" name="internshipRelevance" min="0" max="10" value={data.internshipRelevance} onChange={handleChange} className="w-full h-1.5 bg-white dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button 
-        onClick={onSubmit}
-        className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[24px] shadow-2xl shadow-indigo-200/50 dark:shadow-indigo-900/20 transition-all hover:-translate-y-1 active:scale-[0.98] group"
-      >
-        <span className="flex items-center justify-center gap-3">
-          Launch Analysis
-          <span className="group-hover:translate-x-1.5 transition-transform">→</span>
-        </span>
-      </button>
-    </div>
+    </form>
   );
 };
 
