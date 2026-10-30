@@ -1,148 +1,357 @@
-Placeltyics – Placement Prediction & Career Analytics System
-Overview
+# Placeltyics
+### Placement Readiness & Career Intelligence Platform
 
-Placeltyics is a full-stack web application designed to analyze student academic and technical profiles and evaluate placement readiness.
+**Understand your placement readiness. Identify skill gaps. Build a smarter preparation strategy.**
 
-The system combines structured scoring logic with AI-generated feedback to provide actionable recommendations for improving employability.
+Placeltyics is a full-stack web application designed to help students evaluate their placement readiness through a structured assessment of academic performance, technical skills, aptitude, communication, projects, internships and backlogs.
 
-This project was developed as an academic engineering system integrating frontend development, backend API design, and AI-based analysis.
+It combines a custom heuristic-based evaluation engine with Google Gemini-powered career guidance to turn student profile data into actionable preparation recommendations.
 
-Problem Statement
+<p align="center">
+  <a href="https://placeltyics.vercel.app/">Live Application</a> ·
+  <a href="https://github.com/karthik-1806/Placeltyics">Source Code</a>
+</p>
 
-Campus placement preparation often lacks structured, data-driven evaluation. Students typically do not have a quantified understanding of:
+---
 
-Their current placement readiness
+## Overview
 
-Key areas requiring improvement
+Preparing for campus placements involves more than solving coding problems. Students need to understand their strengths, identify weaknesses, assess their technical preparation and prioritize the skills that matter for recruitment.
 
-Comparative profile strength
+Placeltyics brings these activities together in one platform.
 
-Placeltyics addresses this gap by converting academic and skill-based inputs into a measurable readiness score and structured recommendations.
+Students can build their academic and technical profile, calculate a placement readiness score, explore their performance through analytics and receive personalized recommendations from an AI-assisted advisory system.
 
-System Architecture
+## Features
 
-The application follows a modular full-stack architecture:
+### 1. Placement Readiness Predictor
 
-Frontend
+Evaluate your profile using multiple dimensions:
 
-React (TypeScript)
+- Academic performance and CGPA
+- Data Structures and Algorithms proficiency
+- Development and programming skills
+- Quantitative aptitude
+- Communication skills
+- Internship experience and relevance
+- Projects, complexity and documentation
+- Active academic backlogs
 
-Vite
+The evaluation engine calculates a readiness score and provides a structured assessment of your current profile.
 
-Tailwind CSS
+### 2. Interactive Dashboard
 
-Component-based UI design
+A centralized view of your placement preparation.
 
-SVG-based readiness score visualization
+- Overall placement readiness
+- Profile completion status
+- Important preparation milestones
+- Skills requiring attention
+- Recommended next actions
+- Previous evaluation records
 
-Backend
+### 3. AI Advisory Center
 
-Node.js
+An AI-assisted career guidance system powered by the Google Gemini API.
 
-Express.js
+Choose from three advisory perspectives:
 
-REST API structure
+**Strategic Advisor**
+- Evaluates your overall placement profile.
+- Identifies high-priority improvement areas.
+- Suggests practical preparation milestones.
 
-Environment-based API key management
+**Technical Interviewer**
+- Provides technical interview preparation guidance.
+- Highlights coding and project discussion areas.
+- Recommends strategies for technical screening rounds.
 
-AI Integration
+**Academic Mentor**
+- Suggests structured study routines.
+- Helps prioritize academic and technical preparation.
+- Provides guidance on maintaining sustainable preparation habits.
 
-Google Gemini API
+The advisory system also includes deterministic fallback recommendations when the backend or Gemini API is unavailable.
 
-Structured JSON response generation
+### 4. Placement Insights
 
-Categorized improvement recommendations
+Explore your profile through visual analytics.
 
-Data Handling
+- Multi-dimensional skill radar chart
+- Historical readiness progression
+- Project and internship breakdown
+- Academic backlog indicators
+- Skill distribution and profile analysis
 
-LocalStorage-based profile persistence
+### 5. Learning Resource Hub
 
-Modular scoring engine
+A centralized collection of placement preparation resources.
 
-Historical prediction tracking
+Explore resources covering:
 
-Core Features
+- Data Structures and Algorithms
+- Core Computer Science subjects
+- System design
+- Technical interviews
+- Behavioral interviews
+- Resume preparation
 
-Profile-based placement readiness assessment
+Search and filter resources by category.
 
-Dynamic circular readiness score visualization
+### 6. Student Profile Management
 
-AI-generated structured feedback
+Maintain your academic and technical profile.
 
-Tier classification (Platinum / Elite / Growth)
+- Student information
+- Academic details
+- Career goals
+- Technical competencies
+- Profile completeness
 
-Profile management system
+### 7. Settings and Preferences
 
-Dark/Light theme support
+- Dark and light themes
+- Profile data export in JSON format
+- Profile reset controls
+- Application preferences
 
-Historical prediction tracking
+---
 
-Technical Highlights
+## System Architecture
 
-Custom placement readiness calculation engine
+Placeltyics follows a modular full-stack architecture.
 
-SVG-based animated progress ring
+```mermaid
+flowchart TD
+    A[Student] --> B[React Frontend]
+    B --> C[Dashboard and Predictor]
+    C --> D[Placement Readiness Engine]
+    D --> E[Results and Analytics]
 
-Gradient-based stroke visualization
+    B --> F[AI Advisory Service]
+    F --> G[Express Backend API]
+    G --> H[Google Gemini API]
 
-Modular state management
+    G --> I[Server-side Heuristic Fallback]
+    F --> J[Client-side Heuristic Fallback]
 
-Clean routing with React Router
+    B --> K[Browser LocalStorage]
+    
+    H --> L[Personalized Recommendations]
+    I --> L
+    J --> L
+```
 
-Environment variable handling for secure API usage
+### Application Flow
 
-Installation & Setup
-Prerequisites
+1. Students enter their academic and technical profile.
+2. The readiness engine processes the input and calculates a heuristic score.
+3. The dashboard and analytics visualize the evaluation.
+4. The advisory service sends the relevant profile information to the backend.
+5. The backend requests structured recommendations from Google Gemini.
+6. If the AI service is unavailable, fallback recommendation logic provides alternative guidance.
 
-Node.js (v18+ recommended)
+---
 
-Steps
+## Technology Stack
 
-Clone the repository
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript |
+| Build Tool | Vite 6 |
+| Styling | Tailwind CSS 4 |
+| Routing | React Router |
+| Data Visualization | Recharts |
+| Backend | Node.js, Express.js |
+| AI Integration | Google Gemini API |
+| Persistence | Browser LocalStorage |
+| Deployment | Vercel |
 
-Install dependencies:
+---
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20 or later recommended
+- npm
+- Google Gemini API key for live AI-generated recommendations
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/karthik-1806/Placeltyics.git
+
+cd Placeltyics
+```
+
+### 2. Install dependencies
+
+```bash
 npm install
+```
 
+### 3. Configure environment variables
 
-Create a .env file:
+Copy the example environment file.
 
-GEMINI_API_KEY=your_api_key_here
+**Windows PowerShell:**
 
+```powershell
+Copy-Item .env.example .env
+```
 
-Start frontend:
+**macOS / Linux:**
 
+```bash
+cp .env.example .env
+```
+
+Update the `.env` file:
+
+```env
+PORT=5050
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-3.8-flash
+```
+
+`GEMINI_MODEL` is optional. When omitted, the backend uses its default model.
+
+**Security:** Never commit your `.env` file or expose the Gemini API key in frontend code.
+
+### 4. Start the backend
+
+Open a terminal and run:
+
+```bash
+npm run server
+```
+
+The backend starts locally on:
+
+```text
+http://localhost:5050
+```
+
+### 5. Start the frontend
+
+Open another terminal and run:
+
+```bash
 npm run dev
+```
 
+The frontend runs on:
 
-Start backend:
+```text
+http://localhost:3000
+```
 
-node server/index.mjs
+Open the local application in your browser.
 
-Academic Value
+### 6. Verify the production build
 
-This project demonstrates:
+```bash
+npx tsc --noEmit
+npm run build
+```
 
-Full-stack web development
+---
 
-API integration
+## API Endpoints
 
-Client-server communication
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/health` | Backend health and AI configuration status |
+| POST | `/api/recommendations` | Generate personalized advisory recommendations |
 
-State persistence
+The recommendations endpoint accepts student profile data, the readiness evaluation result and the selected advisory persona.
 
-UI/UX design with responsive architecture
+---
 
-Applied AI usage in decision support systems
+## Deployment
 
-Future Improvements
+Placeltyics is deployed using Vercel.
 
-Replace LocalStorage with database (MongoDB/PostgreSQL)
+**Live application:** https://placeltyics.vercel.app/
 
-Add authentication system (JWT)
+The repository includes `vercel.json` routing configuration for:
 
-Deploy backend on cloud platform
+- Frontend application routing
+- Backend API routing to the Express handler
 
-Add model-based statistical scoring refinement
+### Production environment variables
 
-Add recruiter dashboard view
+Configure these in your Vercel project under **Settings → Environment Variables**:
+
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Enables live Gemini API integration |
+| `GEMINI_MODEL` | Optional model override; defaults to `gemini-3.8-flash` |
+
+After changing production environment variables, trigger a new deployment.
+
+---
+
+## Project Structure
+
+```text
+Placeltyics/
+│
+├── components/
+│   ├── Navbar.tsx
+│   ├── PredictForm.tsx
+│   ├── ResultView.tsx
+│   └── ConfirmModal.tsx
+│
+├── pages/
+│   ├── Dashboard.tsx
+│   ├── PredictPage.tsx
+│   ├── Coach.tsx
+│   ├── Insights.tsx
+│   ├── ResourceHub.tsx
+│   ├── Account.tsx
+│   ├── Settings.tsx
+│   └── Login.tsx
+│
+├── services/
+│   ├── predictionEngine.ts
+│   └── geminiService.ts
+│
+├── server/
+│   └── index.mjs
+│
+├── public/
+│   ├── favicon.svg
+│   └── favicon.ico
+│
+├── App.tsx
+├── types.ts
+├── constants.ts
+├── index.tsx
+├── index.css
+├── index.html
+├── package.json
+├── vite.config.ts
+├── tsconfig.json
+├── vercel.json
+└── .env.example
+```
+
+---
+
+## Important Notes and Limitations
+
+- **Readiness score:** The score is based on a custom heuristic evaluation engine. It is not a statistically validated probability of getting hired and does not guarantee placement.
+- **Company eligibility:** Company-tier indicators are guidance based on the application's built-in rules. Actual recruitment criteria vary by employer and hiring cycle.
+- **Data persistence:** Student profiles and evaluation history are stored in browser LocalStorage. They are not automatically synchronized across devices or browsers.
+- **Authentication:** The current account flow is browser-based and should not be treated as production-grade server-side authentication.
+- **AI recommendations:** Gemini-generated recommendations require a valid backend API configuration. Deterministic fallback recommendations remain available when the AI service is unavailable.
+
+---
+
+## Project Goal
+
+Placeltyics aims to make campus placement preparation more structured and measurable by helping students understand their current capabilities, recognize improvement areas and take focused steps toward their career goals.
+
+**Built to make placement preparation more informed, structured and actionable.**
